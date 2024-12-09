@@ -1,3 +1,6 @@
 go 1.23
 
-use ./identity/auth
+use (
+	./identity/auth
+	./lib/test_import
+)
