@@ -1,0 +1,33 @@
+services:
+  db:
+    container_name: db
+    image: postgres:16.0-bookworm
+    expose:
+      - 5432
+    ports:
+      - 127.1.1.1:5432:5432
+    environment:
+      POSTGRES_PASSWORD: passwd_identity_auth_local
+      POSTGRES_USER: rootuser_identity_auth_local
+      POSTGRES_DB: identity_auth
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    #volumes:
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb
+    networks:
+      - efm_identity_auth
+    volumes:
+      - efm_identity_auth:/var/lib/postgresql/data
+
+networks:
+  efm_identity_auth:
+    name: efm_identity_auth
+
+volumes:
+  efm_identity_auth:
+    name: efm_identity_auth
