@@ -32,5 +32,5 @@ type Repoer interface {
 }
 
 var (
-	ErrInternal = errors.New("the user service encountered an unexpected condition that prevented it from fulfilling the request")
+	ErrInternal = errors.New("auth: the user service encountered an unexpected condition that prevented it from fulfilling the request")
 )

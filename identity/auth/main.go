@@ -17,7 +17,7 @@ import (
 func main() {
 	fmt.Println("hello auth")
 
-	dsn := "host=127.1.1.1 user=rootuser_identity_auth_local password=passwd_identity_auth_local dbname=identity_auth port=5432 sslmode=disable"
+	dsn := "host=127.0.0.1 user=postgres password=passwd dbname=identity port=5432 sslmode=disable"
 	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	// UUID support for PostgreSQL
