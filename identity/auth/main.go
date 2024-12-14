@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/go-chi/cors"
+	"github.com/go-chi/oauth"
 	UserServer "github.com/jkitajima/efm/identity/auth/pkg/user/httphandler"
 	"github.com/jkitajima/efm/lib/composer"
 
@@ -27,6 +30,15 @@ func main() {
 	db.AutoMigrate(&repo.UserModel{})
 
 	srv := composer.NewComposer()
+	srv.Mux.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "PUT", "POST", "DELETE", "HEAD", "OPTION"},
+		AllowedHeaders:   []string{"User-Agent", "Content-Type", "Accept", "Accept-Encoding", "Accept-Language", "Cache-Control", "Connection", "DNT", "Host", "Origin", "Pragma", "Referer"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+	oauth.NewBearerServer("", 120*time.Second, nil, nil)
 
 	userServer := UserServer.NewServer(db)
 	srv.Compose(userServer)
