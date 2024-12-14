@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,7 +18,12 @@ const (
 )
 
 func (r *Role) Scan(src any) error {
-	*r = Role(src.([]byte))
+	data, ok := src.(string)
+	if !ok {
+		return fmt.Errorf("api: user: role scanner received an invalid string from the db driver")
+	}
+
+	*r = Role(data)
 	return nil
 }
 
@@ -41,11 +47,12 @@ type Service struct {
 
 type Repoer interface {
 	Insert(context.Context, *User) error
-	// FindByID(context.Context, uuid.UUID) (*User, error)
-	// UpdateByID(context.Context, uuid.UUID, *User) error
-	// DeleteByID(context.Context, uuid.UUID) error
+	FindByID(context.Context, uuid.UUID) (*User, error)
+	UpdateByID(context.Context, uuid.UUID, *User) error
+	SoftDeleteByID(context.Context, uuid.UUID) error
 }
 
 var (
-	ErrInternal = errors.New("api: the user service encountered an unexpected condition that prevented it from fulfilling the request")
+	ErrInternal     = errors.New("api: user: the user service encountered an unexpected condition that prevented it from fulfilling the request")
+	ErrNotFoundByID = errors.New("api: user: could not find any user with provided ID")
 )

@@ -1,16 +1,32 @@
 package gorm
 
-// import (
-// 	"context"
+import (
+	"context"
+	"fmt"
 
-// 	"github.com/google/uuid"
-// 	"github.com/jkitajima/efm/identity/auth/pkg/user"
-// )
+	"github.com/google/uuid"
+	"github.com/jkitajima/efm/svc/api/pkg/user"
+	"gorm.io/gorm/clause"
+)
 
-// func (db *DB) UpdateByID(ctx context.Context, id uuid.UUID, user *user.User) error {
+func (db *DB) UpdateByID(ctx context.Context, id uuid.UUID, u *user.User) error {
+	model := UserModel{ID: id}
+	result := db.Model(&model).Clauses(clause.Returning{}).Updates(UserModel{
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		Role:      u.Role,
+	})
+	if result.Error != nil {
+		fmt.Println(result.Error)
+		return user.ErrInternal
+	}
 
-// 	result := db.Model(&UserModel{}).Where("id = ?", id.String()).Update("email_verified", true)
-// 	// db.First(user, "id = ?", id.String())
+	u.ID = model.ID
+	u.FirstName = model.FirstName
+	u.LastName = model.LastName
+	u.CreatedAt = model.CreatedAt
+	u.Role = model.Role
+	u.UpdatedAt = model.UpdatedAt
 
-// 	return result.Error
-// }
+	return nil
+}
