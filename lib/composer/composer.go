@@ -14,15 +14,15 @@ type Server interface {
 
 type Composer struct {
 	servers []Server
-	mux     *chi.Mux
+	Mux     *chi.Mux
 }
 
 func NewComposer() *Composer {
-	return &Composer{mux: chi.NewRouter()}
+	return &Composer{Mux: chi.NewRouter()}
 }
 
 func (c *Composer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c.mux.ServeHTTP(w, r)
+	c.Mux.ServeHTTP(w, r)
 }
 
 func (c *Composer) Compose(servers ...Server) error {
@@ -36,12 +36,12 @@ func (c *Composer) Compose(servers ...Server) error {
 			return errors.New("composer: server prefix is empty")
 		}
 
-		mux := s.Mux()
-		if mux == nil {
-			return errors.New("composer: server mux is nil")
+		Mux := s.Mux()
+		if Mux == nil {
+			return errors.New("composer: server Mux is nil")
 		}
 
-		c.mux.Mount(prefix, mux)
+		c.Mux.Mount(prefix, Mux)
 	}
 
 	return nil
