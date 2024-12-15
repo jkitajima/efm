@@ -12,6 +12,19 @@ import (
 
 type Role string
 
+func NewRole(role string) (Role, error) {
+	switch role {
+	case "default":
+		return Default, nil
+	case "admin":
+		return Admin, nil
+	case "":
+		return Default, nil
+	default:
+		return "", ErrInvalidRole
+	}
+}
+
 const (
 	Default Role = "default"
 	Admin   Role = "admin"
@@ -55,4 +68,5 @@ type Repoer interface {
 var (
 	ErrInternal     = errors.New("api: user: the user service encountered an unexpected condition that prevented it from fulfilling the request")
 	ErrNotFoundByID = errors.New("api: user: could not find any user with provided ID")
+	ErrInvalidRole  = errors.New("api: user: role is not valid")
 )

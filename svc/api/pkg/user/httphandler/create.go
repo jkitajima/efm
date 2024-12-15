@@ -44,7 +44,7 @@ func (s *UserServer) handleUserCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := responder.Decode[request](r)
 		if err != nil {
-			responder.RespondMeta(w, r, http.StatusBadRequest)
+			responder.RespondMetaMessage(w, r, http.StatusBadRequest, "Request body is invalid.")
 			return
 		}
 
@@ -61,7 +61,6 @@ func (s *UserServer) handleUserCreate() http.HandlerFunc {
 			},
 		})
 		if err != nil {
-			// TODO: error from business domain could be either client or server side
 			responder.RespondInternalError(w, r)
 			return
 		}

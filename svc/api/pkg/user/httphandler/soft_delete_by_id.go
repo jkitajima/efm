@@ -13,8 +13,7 @@ func (s *UserServer) handleUserSoftDeleteByID() http.HandlerFunc {
 		id := r.PathValue("userID")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			// encoding.ErrorRespond(w, r, http.StatusBadRequest, err)
-			responder.RespondInternalError(w, r)
+			responder.RespondMetaMessage(w, r, http.StatusBadRequest, "User ID must be a valid UUID.")
 			return
 		}
 
@@ -23,7 +22,12 @@ func (s *UserServer) handleUserSoftDeleteByID() http.HandlerFunc {
 			user.SoftDeleteByIDRequest{ID: uuid},
 		)
 		if err != nil {
-			responder.RespondInternalError(w, r)
+			switch err {
+			case user.ErrNotFoundByID:
+				responder.RespondMetaMessage(w, r, http.StatusBadRequest, "Could not find any user with provided ID.")
+			default:
+				responder.RespondInternalError(w, r)
+			}
 			return
 		}
 

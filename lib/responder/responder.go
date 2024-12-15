@@ -46,3 +46,8 @@ func RespondMeta(w http.ResponseWriter, r *http.Request, status int) error {
 	field := NewMetaField(status, http.StatusText(status))
 	return Respond(w, r, field.Meta.Status, field)
 }
+
+func RespondMetaMessage(w http.ResponseWriter, r *http.Request, status int, msg string) error {
+	field := NewMetaField(status, msg)
+	return Respond(w, r, field.Meta.Status, field)
+}
