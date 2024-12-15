@@ -3,6 +3,7 @@ package httphandler
 import (
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jkitajima/efm/lib/composer"
 	repo "github.com/jkitajima/efm/svc/api/pkg/user/repo/gorm"
 
@@ -12,11 +13,12 @@ import (
 )
 
 type UserServer struct {
-	entity  string
-	mux     *chi.Mux
-	prefix  string
-	service *user.Service
-	db      user.Repoer
+	entity         string
+	mux            *chi.Mux
+	prefix         string
+	service        *user.Service
+	db             user.Repoer
+	inputValidator *validator.Validate
 }
 
 func (s *UserServer) Prefix() string {
@@ -31,13 +33,15 @@ func (s *UserServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
-func NewServer(db *gorm.DB) composer.Server {
+func NewServer(db *gorm.DB, validtr *validator.Validate) composer.Server {
 	s := &UserServer{
-		entity: "users",
-		prefix: "/users",
-		mux:    chi.NewRouter(),
-		db:     repo.NewRepo(db),
+		entity:         "users",
+		prefix:         "/users",
+		mux:            chi.NewRouter(),
+		db:             repo.NewRepo(db),
+		inputValidator: validtr,
 	}
+
 	s.service = &user.Service{Repo: s.db}
 	s.addRoutes()
 	return s

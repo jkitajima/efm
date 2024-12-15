@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	UserServer "github.com/jkitajima/efm/svc/api/pkg/user/httphandler"
 	repo "github.com/jkitajima/efm/svc/api/pkg/user/repo/gorm"
 
@@ -39,9 +40,11 @@ $$;
 	// Migrate the schema
 	db.AutoMigrate(&repo.UserModel{})
 
+	inputValidator := validator.New(validator.WithRequiredStructEnabled())
+
 	srv := composer.NewComposer()
 
-	userServer := UserServer.NewServer(db)
+	userServer := UserServer.NewServer(db, inputValidator)
 	srv.Compose(userServer)
 	log.Fatalln(http.ListenAndServe("127.2.1.1:8080", srv))
 }

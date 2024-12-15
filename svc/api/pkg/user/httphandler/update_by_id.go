@@ -20,7 +20,7 @@ func (s *UserServer) handleUserUpdateByID() http.HandlerFunc {
 		Entity    string    `json:"entity"`
 		ID        uuid.UUID `json:"id"`
 		FirstName string    `json:"first_name"`
-		LastName  string    `json:"last_name"`
+		LastName  *string   `json:"last_name"`
 		Role      string    `json:"role"`
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
@@ -58,7 +58,7 @@ func (s *UserServer) handleUserUpdateByID() http.HandlerFunc {
 			Entity:    s.entity,
 			ID:        updateResponse.User.ID,
 			FirstName: updateResponse.User.FirstName,
-			LastName:  *updateResponse.User.LastName,
+			LastName:  updateResponse.User.LastName,
 			Role:      string(updateResponse.User.Role),
 			CreatedAt: updateResponse.User.CreatedAt,
 			UpdatedAt: updateResponse.User.UpdatedAt,
