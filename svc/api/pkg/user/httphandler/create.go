@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jkitajima/efm/lib/responder"
 	"github.com/jkitajima/efm/svc/api/pkg/user"
@@ -14,7 +13,7 @@ func (s *UserServer) handleUserCreate() http.HandlerFunc {
 	type request struct {
 		FirstName string `json:"first_name" validate:"required"`
 		LastName  string `json:"last_name"`
-		Role      string `json:"role" validate:"oneof=default admin"`
+		Role      string `json:"role" validate:"omitempty,oneof=default admin"`
 	}
 
 	type response struct {
@@ -27,40 +26,19 @@ func (s *UserServer) handleUserCreate() http.HandlerFunc {
 		UpdatedAt time.Time `json:"updated_at"`
 	}
 
-	var contract = map[string]struct {
-		field      string
-		validation string
-	}{
+	var contract = map[string]responder.Field{
 		"FirstName": {
-			field:      "first_name",
-			validation: "Field is required and cannot be an empty string.",
+			Name:       "first_name",
+			Validation: "Field is required and cannot be an empty string.",
 		},
 		"LastName": {
-			field:      "last_name",
-			validation: "Field value cannot be an empty string.",
+			Name:       "last_name",
+			Validation: "Field value cannot be an empty string.",
 		},
 		"Role": {
-			field:      "role",
-			validation: "Field value must be either 'default' or 'admin'.",
+			Name:       "role",
+			Validation: "Field value must be either 'default' or 'admin'.",
 		},
-	}
-
-	validateInput := func(req request) ([]responder.ErrorObject, error) {
-		errors := make([]responder.ErrorObject, 0, len(contract))
-
-		err := s.inputValidator.Struct(req)
-		if err != nil {
-			for _, err := range err.(validator.ValidationErrors) {
-				structField := err.StructField()
-				t := contract[structField].field
-				d := contract[structField].validation
-				errors = append(errors, responder.ErrorObject{
-					Title:  t,
-					Detail: &d,
-				})
-			}
-		}
-		return errors, err
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -70,8 +48,7 @@ func (s *UserServer) handleUserCreate() http.HandlerFunc {
 			return
 		}
 
-		errors, err := validateInput(req)
-		if err != nil {
+		if errors := responder.ValidateInput(s.inputValidator, req, contract); len(errors) > 0 {
 			responder.RespondClientErrors(w, r, errors...)
 			return
 		}
