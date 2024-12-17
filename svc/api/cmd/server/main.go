@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/jkitajima/efm/lib/composer"
+	serverComposer "github.com/jkitajima/efm/lib/composer"
 	UserServer "github.com/jkitajima/efm/svc/api/pkg/user/httphandler"
 	repo "github.com/jkitajima/efm/svc/api/pkg/user/repo/gorm"
 
@@ -29,21 +33,18 @@ func main() {
 func exec(
 	ctx context.Context,
 	args []string,
-	stdin io.Reader,
-	stdout io.Writer,
-	strerr io.Writer,
-	getenv func(string) string,
-	getwd func() (string, error),
+	_ io.Reader,
+	_ io.Writer,
+	_ io.Writer,
+	_ func(string) string,
+	_ func() (string, error),
 ) error {
-
-	fmt.Println("efm svc api")
-
 	cfg, err := NewConfig(args)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
+	// Setting up dependencies
 	db, err := initDB(&cfg.DB)
 	if err != nil {
 		return err
@@ -51,17 +52,50 @@ func exec(
 
 	inputValidator := validator.New(validator.WithRequiredStructEnabled())
 
-	srv := composer.NewComposer()
-
+	// Mounting routers
+	composer := serverComposer.NewComposer()
 	userServer := UserServer.NewServer(db, inputValidator)
-	srv.Compose(userServer)
-	log.Fatalln(http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port), srv))
-	return nil
+	if err := composer.Compose(userServer); err != nil {
+		return err
+	}
+
+	// Server config
+	server := &http.Server{
+		Addr:         net.JoinHostPort(cfg.Server.Host, cfg.Server.Port),
+		WriteTimeout: time.Second * time.Duration(cfg.Server.Timeout.Write),
+		ReadTimeout:  time.Second * time.Duration(cfg.Server.Timeout.Read),
+		IdleTimeout:  time.Second * time.Duration(cfg.Server.Timeout.Idle),
+		Handler:      composer,
+	}
+
+	// Graceful shutdown
+	notifyCtx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	serverChan := make(chan error, 1)
+	go func() {
+		<-notifyCtx.Done()
+
+		timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(cfg.Server.Timeout.Shutdown))
+		defer cancel()
+
+		if err := server.Shutdown(timeoutCtx); err != nil {
+			serverChan <- err
+		}
+		serverChan <- nil
+	}()
+
+	log.Printf("server listening on %s\n", server.Addr)
+	if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		return err
+	}
+
+	return <-serverChan
 }
 
 func initDB(config *DB) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		config.Host,
 		config.User,
 		config.Password,
@@ -96,10 +130,4 @@ func initDB(config *DB) (*gorm.DB, error) {
 	db.AutoMigrate(&repo.UserModel{})
 
 	return db, nil
-}
-
-func run() {
-	// start server
-	// stop server (graceful shutdown)
-	panic("unimplemented")
 }
