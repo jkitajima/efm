@@ -3,7 +3,7 @@ module github.com/jkitajima/efm/svc/api
 go 1.23
 
 require (
-	github.com/go-chi/chi/v5 v5.1.0
+	github.com/go-chi/chi/v5 v5.2.0
 	github.com/google/uuid v1.6.0
 	gorm.io/gorm v1.25.12
 )
@@ -27,6 +27,9 @@ require (
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/jwx v1.2.30 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
+	github.com/peterbourgon/ff v1.7.1 // indirect
+	github.com/peterbourgon/ff/v3 v3.4.0
+	github.com/peterbourgon/ff/v4 v4.0.0-alpha.4
 	github.com/pkg/errors v0.9.1 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/net v0.32.0 // indirect
