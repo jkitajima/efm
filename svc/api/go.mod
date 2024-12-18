@@ -9,6 +9,14 @@ require (
 )
 
 require (
+	github.com/alexliesenfeld/health v0.8.0 // indirect
+	github.com/hellofresh/health-go/v5 v5.5.3 // indirect
+	github.com/lib/pq v1.10.9 // indirect
+	go.opentelemetry.io/otel v1.33.0 // indirect
+	go.opentelemetry.io/otel/trace v1.33.0 // indirect
+)
+
+require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.7 // indirect
 	github.com/go-chi/jwtauth v1.2.0 // indirect

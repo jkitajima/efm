@@ -33,6 +33,7 @@ type DB struct {
 	User     string
 	Password string
 	SSL      string
+	DSN      string
 }
 
 func NewConfig(args []string) (*Config, error) {

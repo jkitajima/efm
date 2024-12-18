@@ -54,8 +54,9 @@ func exec(
 
 	// Mounting routers
 	composer := serverComposer.NewComposer()
+	healthServer := setupHealthCheck(cfg)
 	userServer := UserServer.NewServer(db, inputValidator)
-	if err := composer.Compose(userServer); err != nil {
+	if err := composer.Compose(healthServer, userServer); err != nil {
 		return err
 	}
 
@@ -94,7 +95,7 @@ func exec(
 }
 
 func initDB(config *DB) (*gorm.DB, error) {
-	dsn := fmt.Sprintf(
+	config.DSN = fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		config.Host,
 		config.User,
@@ -103,7 +104,7 @@ func initDB(config *DB) (*gorm.DB, error) {
 		config.Port,
 		config.SSL,
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(postgres.Open(config.DSN), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix: "api.",
 		},
