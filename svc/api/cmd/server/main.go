@@ -54,9 +54,9 @@ func exec(
 
 	// Mounting routers
 	composer := serverComposer.NewComposer()
-	healthServer := setupHealthCheck(cfg)
+	healthCheck := SetupHealthCheck(cfg)
 	userServer := UserServer.NewServer(db, inputValidator)
-	if err := composer.Compose(healthServer, userServer); err != nil {
+	if err := composer.Compose(healthCheck, userServer); err != nil {
 		return err
 	}
 

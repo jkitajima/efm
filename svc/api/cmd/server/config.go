@@ -17,6 +17,7 @@ type Server struct {
 	Host    string
 	Port    string
 	Timeout ServerTimeout
+	Health  ServerHealth
 }
 
 type ServerTimeout struct {
@@ -24,6 +25,14 @@ type ServerTimeout struct {
 	Write    int
 	Idle     int
 	Shutdown int
+}
+
+type ServerHealth struct {
+	Timeout  int
+	Cache    int
+	Interval int
+	Delay    int
+	Retries  int
 }
 
 type DB struct {
@@ -46,6 +55,11 @@ func NewConfig(args []string) (*Config, error) {
 		serverTimeoutWrite    int
 		serverTimeoutIdle     int
 		serverTimeoutShutdown int
+		serverHealthTimeout   int
+		serverHealthCache     int
+		serverHealthInterval  int
+		serverHealthDelay     int
+		serverHealthRetries   int
 		dbHost                string
 		dbPort                string
 		dbName                string
@@ -60,6 +74,11 @@ func NewConfig(args []string) (*Config, error) {
 	fs.IntVar(&serverTimeoutWrite, 0, "server.timeout.write", 15, "number of seconds that the server will wait for writing requests")
 	fs.IntVar(&serverTimeoutIdle, 0, "server.timeout.idle", 60, "number of seconds that the server will wait for the next request")
 	fs.IntVar(&serverTimeoutShutdown, 0, "server.timeout.shutdown", 30, "the duration for which the server gracefully wait for existing connections to finish")
+	fs.IntVar(&serverHealthTimeout, 0, "server.health.timeout", 30, "if a single run of the check takes longer than timeout seconds then the check is considered to have failed")
+	fs.IntVar(&serverHealthCache, 0, "server.health.cache", 5, "sets the duration for how long the aggregated health check result will be cached")
+	fs.IntVar(&serverHealthInterval, 0, "server.health.interval", 30, "the health check will first run interval seconds after the program is started, and then again interval seconds after each previous check completes")
+	fs.IntVar(&serverHealthDelay, 0, "server.health.delay", 5, "the initialization time for the program to bootstrap before the health check begins")
+	fs.IntVar(&serverHealthRetries, 0, "server.health.retries", 3, "the number of consecutive failures of the health check for the container to be considered unhealthy")
 	fs.StringVar(&dbHost, 0, "db.host", "", "database host address")
 	fs.StringVar(&dbPort, 0, "db.port", "", "database port number")
 	fs.StringVar(&dbName, 0, "db.name", "", "database name")
@@ -87,6 +106,13 @@ func NewConfig(args []string) (*Config, error) {
 				Write:    serverTimeoutWrite,
 				Idle:     serverTimeoutIdle,
 				Shutdown: serverTimeoutShutdown,
+			},
+			Health: ServerHealth{
+				Timeout:  serverHealthTimeout,
+				Cache:    serverHealthCache,
+				Interval: serverHealthInterval,
+				Delay:    serverHealthDelay,
+				Retries:  serverHealthRetries,
 			},
 		},
 		DB: DB{
