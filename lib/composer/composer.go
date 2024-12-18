@@ -36,12 +36,12 @@ func (c *Composer) Compose(servers ...Server) error {
 			return errors.New("composer: server prefix is empty")
 		}
 
-		Mux := s.Mux()
-		if Mux == nil {
+		mux := s.Mux()
+		if mux == nil {
 			return errors.New("composer: server Mux is nil")
 		}
 
-		c.Mux.Mount(prefix, Mux)
+		c.Mux.Mount(prefix, mux)
 	}
 
 	return nil
