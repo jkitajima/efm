@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/go-chi/jwtauth/v5"
 )
 
 func Respond(w http.ResponseWriter, r *http.Request, status int, data any) error {
@@ -50,4 +52,33 @@ func RespondMeta(w http.ResponseWriter, r *http.Request, status int) error {
 func RespondMetaMessage(w http.ResponseWriter, r *http.Request, status int, msg string) error {
 	field := NewMetaField(status, msg)
 	return Respond(w, r, field.Meta.Status, field)
+}
+
+func RespondAuth(ja *jwtauth.JWTAuth) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		hfn := func(w http.ResponseWriter, r *http.Request) {
+			token, _, err := jwtauth.FromContext(r.Context())
+
+			if err != nil {
+				switch err.Error() {
+				case "no token found":
+					RespondMetaMessage(w, r, http.StatusUnauthorized, "No Token Found")
+				case "token is unauthorized":
+					RespondMetaMessage(w, r, http.StatusUnauthorized, "Bearer Token not authorized")
+				default:
+					RespondMetaMessage(w, r, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+				}
+				return
+			}
+
+			if token == nil {
+				RespondMetaMessage(w, r, http.StatusUnauthorized, "Invalid Bearer Token")
+				return
+			}
+
+			// Token is authenticated, pass it through
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(hfn)
+	}
 }
