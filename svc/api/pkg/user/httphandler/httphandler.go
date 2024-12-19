@@ -8,6 +8,7 @@ import (
 	repo "github.com/jkitajima/efm/svc/api/pkg/user/repo/gorm"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/jkitajima/efm/svc/api/pkg/user"
 	"gorm.io/gorm"
 )
@@ -17,6 +18,7 @@ type UserServer struct {
 	mux            *chi.Mux
 	prefix         string
 	service        *user.Service
+	auth           *jwtauth.JWTAuth
 	db             user.Repoer
 	inputValidator *validator.Validate
 }
@@ -33,11 +35,12 @@ func (s *UserServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
-func NewServer(db *gorm.DB, validtr *validator.Validate) composer.Server {
+func NewServer(auth *jwtauth.JWTAuth, db *gorm.DB, validtr *validator.Validate) composer.Server {
 	s := &UserServer{
 		entity:         "users",
 		prefix:         "/users",
 		mux:            chi.NewRouter(),
+		auth:           auth,
 		db:             repo.NewRepo(db),
 		inputValidator: validtr,
 	}

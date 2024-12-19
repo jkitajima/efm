@@ -10,7 +10,12 @@ import (
 
 type Config struct {
 	Server Server
+	Auth   Auth
 	DB     DB
+}
+
+type Auth struct {
+	SignKey string
 }
 
 type Server struct {
@@ -60,6 +65,7 @@ func NewConfig(args []string) (*Config, error) {
 		serverHealthInterval  int
 		serverHealthDelay     int
 		serverHealthRetries   int
+		authSignKey           string
 		dbHost                string
 		dbPort                string
 		dbName                string
@@ -79,6 +85,7 @@ func NewConfig(args []string) (*Config, error) {
 	fs.IntVar(&serverHealthInterval, 0, "server.health.interval", 30, "the health check will first run interval seconds after the program is started, and then again interval seconds after each previous check completes")
 	fs.IntVar(&serverHealthDelay, 0, "server.health.delay", 5, "the initialization time for the program to bootstrap before the health check begins")
 	fs.IntVar(&serverHealthRetries, 0, "server.health.retries", 3, "the number of consecutive failures of the health check for the container to be considered unhealthy")
+	fs.StringVar(&authSignKey, 0, "auth.key", "", "key that was used for signing the JWT token")
 	fs.StringVar(&dbHost, 0, "db.host", "", "database host address")
 	fs.StringVar(&dbPort, 0, "db.port", "", "database port number")
 	fs.StringVar(&dbName, 0, "db.name", "", "database name")
@@ -114,6 +121,9 @@ func NewConfig(args []string) (*Config, error) {
 				Delay:    serverHealthDelay,
 				Retries:  serverHealthRetries,
 			},
+		},
+		Auth: Auth{
+			SignKey: authSignKey,
 		},
 		DB: DB{
 			Host:     dbHost,

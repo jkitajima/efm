@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-playground/validator/v10"
 	serverComposer "github.com/jkitajima/efm/lib/composer"
 	UserServer "github.com/jkitajima/efm/svc/api/pkg/user/httphandler"
@@ -45,6 +46,8 @@ func exec(
 	}
 
 	// Setting up dependencies
+	jwtAuth := jwtauth.New("HS256", []byte(cfg.Auth.SignKey), nil)
+
 	db, err := initDB(&cfg.DB)
 	if err != nil {
 		return err
@@ -55,7 +58,7 @@ func exec(
 	// Mounting routers
 	composer := serverComposer.NewComposer()
 	healthCheck := SetupHealthCheck(cfg)
-	userServer := UserServer.NewServer(db, inputValidator)
+	userServer := UserServer.NewServer(jwtAuth, db, inputValidator)
 	if err := composer.Compose(healthCheck, userServer); err != nil {
 		return err
 	}
