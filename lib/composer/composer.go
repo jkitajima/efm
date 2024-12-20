@@ -17,8 +17,10 @@ type Composer struct {
 	Mux     *chi.Mux
 }
 
-func NewComposer() *Composer {
-	return &Composer{Mux: chi.NewRouter()}
+func NewComposer(middlewares ...func(http.Handler) http.Handler) *Composer {
+	c := &Composer{Mux: chi.NewRouter()}
+	c.Mux.Use(middlewares...)
+	return c
 }
 
 func (c *Composer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
