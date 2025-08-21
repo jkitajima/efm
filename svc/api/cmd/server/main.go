@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-playground/validator/v10"
 	serverComposer "github.com/jkitajima/efm/lib/composer"
@@ -56,7 +57,15 @@ func exec(
 	inputValidator := validator.New(validator.WithRequiredStructEnabled())
 
 	// Mounting routers
-	composer := serverComposer.NewComposer()
+	composer := serverComposer.NewComposer(
+		middleware.Recoverer,
+		middleware.AllowContentType(
+			"application/json",
+			// "application/x-www-form-urlencoded",
+		),
+		middleware.CleanPath,
+		middleware.RedirectSlashes,
+	)
 	healthCheck := SetupHealthCheck(cfg)
 	userServer := UserServer.NewServer(jwtAuth, db, inputValidator)
 	if err := composer.Compose(healthCheck, userServer); err != nil {

@@ -10,6 +10,8 @@ require (
 
 require (
 	github.com/alexliesenfeld/health v0.8.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/go-chi/httprate v0.14.1 // indirect
 	github.com/go-chi/jwtauth/v5 v5.3.2 // indirect
 	github.com/hellofresh/health-go/v5 v5.5.3 // indirect
 	github.com/lestrrat-go/httprc v1.0.6 // indirect
